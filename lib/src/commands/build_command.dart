@@ -1,6 +1,10 @@
 part of 'commands.dart';
 
 final class BuildCommand extends InlayCommand {
+  BuildCommand() {
+    argParser.addFlag('dry-run', negatable: false, help: 'Preview changes');
+  }
+
   @override
   String get description => 'generate code';
 
@@ -32,7 +36,7 @@ final class BuildCommand extends InlayCommand {
         parts.add(entity.basename);
       }
 
-      final dartPart = '''{{#files}}part '{{ . }}';\n{{/files}}\n''';
+      final dartPart = '''{{#files}}part '{{ . }}';\n{{/files}}\n\n''';
       final res = rule.replace(
         file: file,
         template: dartPart,
@@ -40,7 +44,13 @@ final class BuildCommand extends InlayCommand {
         files: parts,
       );
 
-      // print(res);
+      final dryRun = argResults?.flag('dry-run') ?? false;
+
+      if (dryRun) {
+        print(res);
+      } else {
+        file.writeAsStringSync(res);
+      }
     }
 
     return 0;
