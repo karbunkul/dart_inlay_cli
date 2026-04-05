@@ -6,4 +6,7 @@ final class InlayRunner extends CompletionCommandRunner<int> {
   InlayRunner() : super('inlay', '') {
     addCommand(BuildCommand());
   }
+
+  @override
+  bool get enableAutoInstall => false;
 }
