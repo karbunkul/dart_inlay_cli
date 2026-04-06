@@ -2,7 +2,17 @@ part of 'commands.dart';
 
 final class BuildCommand extends InlayCommand {
   BuildCommand() {
-    argParser.addFlag('dry-run', negatable: false, help: 'Preview changes');
+    argParser.addFlag(
+      'dry-run',
+      negatable: false,
+      help: 'Preview changes without writing to files.',
+    );
+    argParser.addOption(
+      'file',
+      abbr: 'f',
+      help: 'Process a specific file instead of using scopes from inlay.yaml.',
+      valueHelp: 'PATH',
+    );
   }
 
   @override
@@ -16,6 +26,20 @@ final class BuildCommand extends InlayCommand {
     if (config == null) {
       logger.err('Config inlay.yaml not found');
       return 1;
+    }
+
+    final file = argResults?['file'] as String?;
+
+    if (file != null) {
+      final normalizeFile = File(p.normalize(file));
+
+      if (!normalizeFile.existsSync()) {
+        logger.err('File $file not found');
+        return 1;
+      } else {
+        _generate(file: normalizeFile, config: config!);
+        return 0;
+      }
     }
 
     for (final scope in config!.scopes) {
