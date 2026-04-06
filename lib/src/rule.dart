@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:inlay/inlay.dart';
-import 'package:mustache_template/mustache.dart';
+import 'package:mustache_template/mustache.dart' as m;
 
 final class Rule {
   final String mask;
@@ -23,7 +23,7 @@ final class Rule {
     required List<String> files,
   }) {
     final value = file.readAsStringSync();
-    final tmpl = Template(template);
+    final tmpl = m.Template(template);
 
     final content = StringBuffer();
 

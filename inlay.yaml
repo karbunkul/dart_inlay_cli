@@ -1,0 +1,2 @@
+scopes:
+  - lib/src/commands/commands.dart

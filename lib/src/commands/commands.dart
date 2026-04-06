@@ -1,7 +1,6 @@
 library;
 
 import 'dart:io';
-import 'package:args/command_runner.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
@@ -13,5 +12,3 @@ part 'build_command.dart';
 part 'watch_command.dart';
 
 // inlay
-
-abstract base class InlayCommand extends Command<int> {}

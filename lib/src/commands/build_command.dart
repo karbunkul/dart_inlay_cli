@@ -13,18 +13,28 @@ final class BuildCommand extends InlayCommand {
 
   @override
   Future<int> run() async {
-    final inlay = Inlay();
-
-    final file = File(
-      p.normalize(
-        p.join(Directory.current.path, 'lib/src/commands/commands.dart'),
-      ),
-    );
-
-    if (!file.existsSync()) {
-      throw ArgumentError('File not found');
+    if (config == null) {
+      logger.err('Config inlay.yaml not found');
+      return 1;
     }
 
+    for (final scope in config!.scopes) {
+      final file = File(p.normalize(scope));
+      if (file.existsSync()) {
+        _generate(file: file, config: config!);
+      } else {
+        final glob = Glob(scope, context: p.Context(style: p.Style.posix));
+        for (var entity in glob.listSync(root: p.current, followLinks: false)) {
+          _generate(file: File(entity.path), config: config!);
+        }
+      }
+    }
+
+    return 0;
+  }
+
+  void _generate({required File file, required Config config}) {
+    final inlay = Inlay();
     final rule = inlay.parseFile(file: file, marker: Marker.dart());
     final path = file.parent.path;
 
@@ -36,11 +46,14 @@ final class BuildCommand extends InlayCommand {
         parts.add(entity.basename);
       }
 
-      final dartPart = '''{{#files}}part '{{ . }}';\n{{/files}}\n\n''';
+      if (!config.hasTemplate(rule.template)) {}
+
+      final template = config.template(rule.template)!;
+
       final res = rule.replace(
         file: file,
-        template: dartPart,
-        marker: Marker.dart(),
+        template: template.template,
+        marker: template.marker,
         files: parts,
       );
 
@@ -52,7 +65,5 @@ final class BuildCommand extends InlayCommand {
         file.writeAsStringSync(res);
       }
     }
-
-    return 0;
   }
 }
