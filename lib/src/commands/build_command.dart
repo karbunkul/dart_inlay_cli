@@ -23,11 +23,6 @@ final class BuildCommand extends InlayCommand {
 
   @override
   Future<int> run() async {
-    if (config == null) {
-      logger.err('Config inlay.yaml not found');
-      return 1;
-    }
-
     final file = argResults?['file'] as String?;
 
     if (file != null) {
@@ -37,9 +32,18 @@ final class BuildCommand extends InlayCommand {
         logger.err('File $file not found');
         return 1;
       } else {
+        final config = Config(
+          templates: [Template.dartPart(), Template.dartExport()],
+          scopes: [normalizeFile.path],
+        );
         _generate(file: normalizeFile, config: config!);
         return 0;
       }
+    }
+
+    if (config == null) {
+      logger.err('Config inlay.yaml not found');
+      return 1;
     }
 
     for (final scope in config!.scopes) {
