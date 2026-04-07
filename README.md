@@ -10,7 +10,7 @@
 Insert a special comment block into your index file (e.g., lib/src/pages/pages.dart):
 
 ```dart
-// inlay template=dart-export mask=/_page.dart
+// inlay template=dart-export mask=/*_page.dart
 // GENERATED CODE - DO NOT MODIFY BY HAND
 export 'login/login_page.dart';
 export 'settings/settings_page.dart';

@@ -29,7 +29,7 @@ final class Template {
   factory Template.dartExport() {
     return Template(
       name: 'dart-export',
-      template: '''{{#files}}export '{{{ . }}}';\n{{/files}}''',
+      template: '''{{#files}}export '{{{ . }}}';\n{{/files}}\n\n''',
       marker: Marker.dart(),
     );
   }
