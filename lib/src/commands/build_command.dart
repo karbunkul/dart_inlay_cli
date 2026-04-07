@@ -67,7 +67,7 @@ final class BuildCommand extends InlayCommand {
       final parts = <String>[];
 
       for (var entity in glob.listSync(root: path, followLinks: false)) {
-        parts.add(entity.basename);
+        parts.add(entity.path.substring(path.length + 1));
       }
 
       if (!config.hasTemplate(rule.template)) {}
