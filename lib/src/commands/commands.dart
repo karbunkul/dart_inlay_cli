@@ -11,6 +11,5 @@ import 'package:inlay/inlay.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 part 'build_command.dart';
 part 'scope_command.dart';
-part 'watch_command.dart';
 
 // inlay

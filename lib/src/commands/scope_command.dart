@@ -9,9 +9,8 @@ final class ScopeCommand extends InlayCommand {
 
   @override
   Future<int> run() async {
-    final currentDirRel = p.relative(
-      Directory.current.path,
-      from: projectDir.path,
+    final currentDirRel = _toPosix(
+      p.relative(Directory.current.path, from: projectDir.path),
     );
 
     if (!hasConfig) {
@@ -38,7 +37,7 @@ final class ScopeCommand extends InlayCommand {
       );
       for (final file in untrackedWithMarkers.take(5)) {
         logger.info(
-          '  - ${p.relative(file.path, from: Directory.current.path)}',
+          '  - ${_toPosix(p.relative(file.path, from: Directory.current.path))}',
         );
       }
       if (untrackedWithMarkers.length > 5) {
@@ -59,6 +58,13 @@ final class ScopeCommand extends InlayCommand {
     }
 
     return 0;
+  }
+
+  String _toPosix(String path) {
+    if (p.style == p.Style.windows) {
+      return path.replaceAll('\\', '/');
+    }
+    return path;
   }
 
   List<String> _findActiveScopes() {
@@ -94,9 +100,15 @@ final class ScopeCommand extends InlayCommand {
     final globs = config!.scopes
         .map((s) => Glob(s, context: p.Context(style: p.Style.posix)))
         .toList();
+    final excludeGlobs = config!.exclude
+        .map((s) => Glob(s, context: p.Context(style: p.Style.posix)))
+        .toList();
 
     for (final file in allFiles) {
-      final relPath = p.relative(file.path, from: projectDir.path);
+      final relPath = _toPosix(p.relative(file.path, from: projectDir.path));
+
+      if (_isExcluded(relPath, excludeGlobs)) continue;
+
       final isTracked = globs.any((g) => g.matches(relPath));
 
       if (!isTracked) {
@@ -107,6 +119,19 @@ final class ScopeCommand extends InlayCommand {
       }
     }
     return untracked;
+  }
+
+  bool _isExcluded(String relPath, List<Glob> excludes) {
+    for (final glob in excludes) {
+      if (glob.matches(relPath)) return true;
+
+      var parent = p.dirname(relPath);
+      while (parent != '.' && parent != '/') {
+        if (glob.matches(parent)) return true;
+        parent = p.dirname(parent);
+      }
+    }
+    return false;
   }
 
   Future<void> _inspectScope(String scope) async {
@@ -145,7 +170,7 @@ final class ScopeCommand extends InlayCommand {
     }
 
     for (final file in files.take(3)) {
-      final relPath = p.relative(file.path, from: currentDirPath);
+      final relPath = _toPosix(p.relative(file.path, from: currentDirPath));
       final hasMarkers = filesWithMarkers.contains(file);
       logger.info(
         '      ${darkGray.wrap('->')} $relPath ${hasMarkers ? yellow.wrap('⚡') : ''}',
@@ -161,7 +186,9 @@ final class ScopeCommand extends InlayCommand {
 
     if (untrackedFiles != null && untrackedFiles.isNotEmpty) {
       for (final file in untrackedFiles) {
-        final dir = p.dirname(p.relative(file.path, from: projectDir.path));
+        final dir = _toPosix(
+          p.dirname(p.relative(file.path, from: projectDir.path)),
+        );
         choices.add(dir == '.' ? '*.dart' : '$dir/*.dart');
         choices.add(dir == '.' ? '**.dart' : '$dir/**.dart');
       }

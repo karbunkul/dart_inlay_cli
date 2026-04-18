@@ -62,14 +62,18 @@ final class InlayRunner extends CompletionCommandRunner<int> {
     if (_config == null && _configFile.existsSync()) {
       final yaml = loadYaml(_configFile.readAsStringSync()) as Map;
       final json = jsonDecode(jsonEncode(yaml));
-      final scopes = (json['scopes'] as List).cast<String>();
+      final scopes = (json['scopes'] as List?)?.cast<String>() ?? [];
+      final exclude = (json['exclude'] as List?)?.cast<String>() ?? [];
 
       _config = Config(
         scopes: scopes,
+        exclude: exclude,
         templates: [Template.dartPart(), Template.dartExport()],
       );
 
-      _logger.detail('🚀 Load config file: ${_configFile.absolute.path}');
+      _logger.detail('DEBUG: Config loaded from ${_configFile.path}');
+      _logger.detail('DEBUG: Scopes found: $scopes');
+      _logger.detail('DEBUG: Exclude patterns: $exclude');
     }
   }
 

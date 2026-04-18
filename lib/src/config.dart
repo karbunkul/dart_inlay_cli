@@ -3,9 +3,13 @@ import 'package:inlay/inlay.dart';
 final class Config {
   final Map<String, Template> _templates;
   final List<String> scopes;
+  final List<String> exclude;
 
-  Config({required List<Template> templates, required this.scopes})
-    : _templates = {for (final b in templates) b.name: b};
+  Config({
+    required List<Template> templates,
+    required this.scopes,
+    this.exclude = const [],
+  }) : _templates = {for (final b in templates) b.name: b};
 
   bool hasTemplate(String name) => _templates.containsKey(name);
   Template? template(String name) => _templates[name];
