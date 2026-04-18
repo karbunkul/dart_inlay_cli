@@ -36,7 +36,7 @@ final class BuildCommand extends InlayCommand {
           templates: [Template.dartPart(), Template.dartExport()],
           scopes: [normalizeFile.path],
         );
-        _generate(file: normalizeFile, config: config!);
+        _generate(file: normalizeFile, config: config);
         return 0;
       }
     }
