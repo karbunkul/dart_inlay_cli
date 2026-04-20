@@ -36,7 +36,7 @@ final class BuildCommand extends InlayCommand {
           templates: [Template.dartPart(), Template.dartExport()],
           scopes: [normalizeFile.path],
         );
-        _generate(file: normalizeFile, config: config!);
+        _generate(file: normalizeFile, config: config);
         return 0;
       }
     }
@@ -67,7 +67,7 @@ final class BuildCommand extends InlayCommand {
     final path = file.parent.path;
 
     if (rule != null) {
-      final glob = Glob(rule.mask, context: p.Context(style: p.Style.posix));
+      final glob = Glob(rule.mask, context: p.Context(style: p.Style.platform));
       final parts = <String>[];
 
       for (var entity in glob.listSync(root: path, followLinks: false)) {
