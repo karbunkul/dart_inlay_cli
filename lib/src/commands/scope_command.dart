@@ -14,9 +14,14 @@ final class ScopeCommand extends InlayCommand {
     );
 
     if (!hasConfig) {
-      logger.err(
-        'inlay.yaml not found. Run this command in a project with inlay initialized.',
+      logger.info('inlay.yaml not found in this project.');
+      final setup = logger.confirm(
+        'Would you like to initialize inlay?',
+        defaultValue: true,
       );
+      if (setup) {
+        return (await runner.run(['init'])) ?? 0;
+      }
       return 1;
     }
 
@@ -212,7 +217,7 @@ final class ScopeCommand extends InlayCommand {
       finalScope = logger.prompt('Enter custom scope pattern:');
     }
 
-    if (finalScope != null && finalScope.isNotEmpty) {
+    if (finalScope.isNotEmpty) {
       final confirm = logger.confirm(
         'Add "$finalScope" to inlay.yaml?',
         defaultValue: true,

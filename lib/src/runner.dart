@@ -47,6 +47,7 @@ final class InlayRunner extends CompletionCommandRunner<int> {
 
     addCommand(BuildCommand());
     addCommand(ScopeCommand());
+    addCommand(InitCommand());
   }
 
   /// Configures the logger level based on the verbose flag.

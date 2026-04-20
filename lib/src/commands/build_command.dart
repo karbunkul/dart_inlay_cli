@@ -42,7 +42,14 @@ final class BuildCommand extends InlayCommand {
     }
 
     if (config == null) {
-      logger.err('Config inlay.yaml not found');
+      logger.info('inlay.yaml not found.');
+      final setup = logger.confirm(
+        'Would you like to initialize inlay?',
+        defaultValue: true,
+      );
+      if (setup) {
+        return (await runner.run(['init'])) ?? 0;
+      }
       return 1;
     }
 
@@ -96,7 +103,7 @@ final class BuildCommand extends InlayCommand {
     final path = file.parent.path;
 
     if (rule != null) {
-      final glob = Glob(rule.mask, context: p.Context(style: p.Style.posix));
+      final glob = Glob(rule.mask, context: p.Context(style: p.Style.platform));
       final parts = <String>[];
 
       for (var entity in glob.listSync(root: path, followLinks: false)) {
