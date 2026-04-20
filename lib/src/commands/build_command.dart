@@ -51,8 +51,14 @@ final class BuildCommand extends InlayCommand {
       if (file.existsSync()) {
         _generate(file: file, config: config!);
       } else {
-        final glob = Glob(scope, context: p.Context(style: p.Style.posix));
-        for (var entity in glob.listSync(root: p.current, followLinks: false)) {
+        final glob = Glob(
+          p.normalize(scope),
+          context: p.Context(style: p.Style.platform),
+        );
+        for (var entity in glob.listSync(
+          root: p.normalize(p.current),
+          followLinks: false,
+        )) {
           _generate(file: File(entity.path), config: config!);
         }
       }
@@ -64,13 +70,16 @@ final class BuildCommand extends InlayCommand {
   void _generate({required File file, required Config config}) {
     final inlay = Inlay();
     final rule = inlay.parseFile(file: file, marker: Marker.dart());
-    final path = file.parent.path;
+    final path = p.normalize(file.parent.path);
 
     if (rule != null) {
       final glob = Glob(rule.mask, context: p.Context(style: p.Style.platform));
       final parts = <String>[];
 
-      for (var entity in glob.listSync(root: path, followLinks: false)) {
+      for (var entity in glob.listSync(
+        root: p.normalize(path),
+        followLinks: false,
+      )) {
         parts.add(entity.path.substring(path.length + 1));
       }
 
