@@ -167,4 +167,7 @@ abstract base class InlayCommand extends Command<int> {
 
   /// The configuration file used by the runner.
   File get configFile => runner._configFile;
+
+  /// Converts a path to POSIX format (using forward slashes).
+  String toPosix(String path) => path.replaceAll('\\', '/');
 }
