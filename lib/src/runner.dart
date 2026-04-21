@@ -145,7 +145,7 @@ final class InlayRunner extends CompletionCommandRunner<int> {
 
   Future<int?> _versionSetup() async {
     _logger.info(
-      '💎 Inlay 0.9.8\n\n'
+      '💎 Inlay 0.9.9\n\n'
       'Author: Alexander Pokhodyun (karbunkul) https://github.com/karbunkul\n',
     );
 
