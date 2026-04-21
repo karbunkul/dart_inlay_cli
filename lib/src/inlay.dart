@@ -2,43 +2,48 @@ import 'dart:io';
 import 'package:inlay/inlay.dart';
 
 final class Inlay {
-  Rule? parseFile({required File file, required Marker marker}) {
-    final matches = marker.pattern().allMatches(file.readAsStringSync());
+  List<Rule> parse({required String content, required Marker marker}) {
+    final matches = marker.pattern().allMatches(content).toList();
+    final rules = <Rule>[];
 
-    if (matches.length == 2) {
-      final start = matches.first.start;
-      final first = matches.first.group(1)!.trim();
-      final second = matches.last.group(0)!;
-      final between = matches.last.start - matches.first.end;
+    for (var i = 0; i < matches.length; i += 2) {
+      if (i + 1 >= matches.length) break;
+
+      final openingMatch = matches[i];
+      final closingMatch = matches[i + 1];
+
+      final startOffset = openingMatch.start;
+      final firstContent = openingMatch.group(1)!.trim();
+      final endOffset = closingMatch.end;
 
       final pattern = RegExp(
         r'(template|mask)\s?=\s{0}(.[^\s;]*)',
         multiLine: true,
       );
-      final paramMatches = pattern.allMatches(first);
-      final params = paramMatches.fold({}, (prev, match) {
+      final paramMatches = pattern.allMatches(firstContent);
+      final params = paramMatches.fold(<String, String>{}, (prev, match) {
         final key = match.group(1)?.trim();
         final value = match.group(2)?.trim();
 
         if (key?.isNotEmpty == true && value?.isNotEmpty == true) {
-          prev.putIfAbsent(key, () => value);
+          prev.putIfAbsent(key!, () => value!);
         }
 
         return prev;
       });
 
-      if (params['template'] == null || params['mask'] == null) {
-        throw ArgumentError('template and mask are required');
+      if (params['template'] != null && params['mask'] != null) {
+        rules.add(
+          Rule(
+            mask: params['mask']!,
+            template: params['template']!,
+            start: startOffset,
+            end: endOffset,
+          ),
+        );
       }
-
-      return Rule(
-        mask: params['mask']!,
-        template: params['template']!,
-        start: start,
-        end: between + matches.first.end + second.length,
-      );
     }
 
-    return null;
+    return rules;
   }
 }

@@ -12,7 +12,7 @@ import 'package:interact/interact.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 part 'init_command.dart';
 part 'build_command.dart';
-part 'scope_command.dart';
 part 'analyze_command.dart';
+part 'scope_command.dart';
 
 // inlay

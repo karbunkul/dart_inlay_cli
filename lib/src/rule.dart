@@ -17,30 +17,26 @@ final class Rule {
   });
 
   String replace({
-    required File file,
+    required String content,
     required String template,
     required Marker marker,
     required List<String> files,
   }) {
-    final value = file.readAsStringSync();
     final tmpl = m.Template(template);
 
-    final content = StringBuffer();
+    final replacement = StringBuffer();
 
-    content.write(marker.toCommentTag(template: this.template, mask: mask));
-    content.write('\n');
+    replacement.write(marker.toCommentTag(template: this.template, mask: mask));
+    replacement.write('\n');
     if (!marker.block) {
-      content.write('${marker.start} GENERATED CODE - DO NOT MODIFY BY HAND');
-      content.write('\n');
+      replacement.write(
+        '${marker.start} GENERATED CODE - DO NOT MODIFY BY HAND',
+      );
+      replacement.write('\n');
     }
-    content.write(tmpl.renderString({'files': files}));
-    content.write(marker.toCommentTag());
+    replacement.write(tmpl.renderString({'files': files}));
+    replacement.write(marker.toCommentTag());
 
-    final newContent = value.replaceFirst(
-      value.substring(start, end),
-      content.toString(),
-    );
-
-    return newContent.toString();
+    return content.replaceRange(start, end, replacement.toString());
   }
 }

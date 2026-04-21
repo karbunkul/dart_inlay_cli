@@ -91,10 +91,17 @@ final class BuildCommand extends InlayCommand {
 
   void _generate({required File file, required Config config}) {
     final inlay = Inlay();
-    final rule = inlay.parseFile(file: file, marker: Marker.dart());
-    final path = p.normalize(file.parent.path);
+    final marker = Marker.dart();
+    final content = file.readAsStringSync();
+    final rules = inlay.parse(content: content, marker: marker);
 
-    if (rule != null) {
+    if (rules.isEmpty) return;
+
+    final path = p.normalize(file.parent.path);
+    var updatedContent = content;
+
+    // Apply replacements in reverse order to keep offsets valid
+    for (final rule in rules.reversed) {
       logger.detail(
         'Found rule in ${file.path}: template=${rule.template}, mask=${rule.mask}',
       );
@@ -113,27 +120,27 @@ final class BuildCommand extends InlayCommand {
 
       if (!config.hasTemplate(rule.template)) {
         logger.detail('Template ${rule.template} not found in config');
-        return;
+        continue;
       }
 
       final template = config.template(rule.template)!;
 
-      final res = rule.replace(
-        file: file,
+      updatedContent = rule.replace(
+        content: updatedContent,
         template: template.template,
         marker: template.marker,
         files: parts,
       );
+    }
 
-      final dryRun = argResults?.flag('dry-run') ?? false;
+    final dryRun = argResults?.flag('dry-run') ?? false;
 
-      if (dryRun) {
-        logger.info('--- ${file.path} ---');
-        logger.info(res);
-      } else {
-        file.writeAsStringSync(res);
-        logger.success('Built ${p.relative(file.path, from: projectDir.path)}');
-      }
+    if (dryRun) {
+      logger.info('--- ${file.path} ---');
+      logger.info(updatedContent);
+    } else if (updatedContent != content) {
+      file.writeAsStringSync(updatedContent);
+      logger.success('Built ${p.relative(file.path, from: projectDir.path)}');
     }
   }
 }

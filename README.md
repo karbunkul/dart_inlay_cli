@@ -51,13 +51,20 @@ analyze:
 
 ## 📝 How It Works
 
-Insert a special comment block into your index file (e.g., `lib/src/pages/pages.dart`):
+Insert special comment blocks into your index file. Inlay supports **multiple blocks** in a single file.
 
 ```dart
-// inlay template=dart-export mask=/*_page.dart
+// inlay template=dart-export mask=models/*.dart
 // GENERATED CODE - DO NOT MODIFY BY HAND
-export 'login/login_page.dart';
-export 'settings/settings_page.dart';
+export 'models/user.dart';
+export 'models/product.dart';
+
+// inlay
+
+// inlay template=dart-export mask=services/*.dart
+// GENERATED CODE - DO NOT MODIFY BY HAND
+export 'services/auth_service.dart';
+export 'services/api_service.dart';
 
 // inlay
 ```
