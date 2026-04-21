@@ -42,26 +42,51 @@ final class BuildCommand extends InlayCommand {
     }
 
     if (config == null) {
-      logger.err('Config inlay.yaml not found');
+      logger.info('inlay.yaml not found.');
+      final setup = logger.confirm(
+        'Would you like to initialize inlay?',
+        defaultValue: true,
+      );
+      if (setup) {
+        return (await runner.run(['init'])) ?? 0;
+      }
       return 1;
     }
+    final excludeGlobs = config!.exclude.map((s) => Glob(s)).toList();
 
     for (final scope in config!.scopes) {
-      final file = File(p.normalize(scope));
-      if (file.existsSync()) {
-        _generate(file: file, config: config!);
-      } else {
-        final glob = Glob(p.normalize(scope));
-        for (var entity in glob.listSync(
-          root: p.normalize(p.current),
-          followLinks: false,
-        )) {
-          _generate(file: File(entity.path), config: config!);
+      logger.info('Processing scope: $scope');
+      final glob = Glob(scope);
+      for (var entity in glob.listSync(
+        root: projectDir.path,
+        followLinks: false,
+      )) {
+        if (entity is! File) continue;
+
+        final relPath = p.relative(entity.path, from: projectDir.path);
+
+        if (!_isExcluded(relPath, excludeGlobs)) {
+          logger.detail('Processing $relPath');
+          _generate(file: entity as File, config: config!);
+        } else {
+          logger.detail('Skipping excluded file $relPath');
         }
       }
     }
 
     return 0;
+  }
+
+  bool _isExcluded(String relPath, List<Glob> excludes) {
+    for (final glob in excludes) {
+      if (glob.matches(relPath)) return true;
+      var parent = p.dirname(relPath);
+      while (parent != '.' && parent != '/') {
+        if (glob.matches(parent)) return true;
+        parent = p.dirname(parent);
+      }
+    }
+    return false;
   }
 
   void _generate({required File file, required Config config}) {
@@ -70,6 +95,9 @@ final class BuildCommand extends InlayCommand {
     final path = p.normalize(file.parent.path);
 
     if (rule != null) {
+      logger.detail(
+        'Found rule in ${file.path}: template=${rule.template}, mask=${rule.mask}',
+      );
       final glob = Glob(rule.mask);
       final parts = <String>[];
 
@@ -78,10 +106,15 @@ final class BuildCommand extends InlayCommand {
         followLinks: false,
       )) {
         final part = entity.path.substring(path.length + 1);
-        parts.add(p.posix.joinAll(part.split(p.separator)));
+        final posixPart = p.posix.joinAll(part.split(p.separator));
+        logger.detail('  Matched: $posixPart');
+        parts.add(posixPart);
       }
 
-      if (!config.hasTemplate(rule.template)) {}
+      if (!config.hasTemplate(rule.template)) {
+        logger.detail('Template ${rule.template} not found in config');
+        return;
+      }
 
       final template = config.template(rule.template)!;
 
@@ -95,9 +128,11 @@ final class BuildCommand extends InlayCommand {
       final dryRun = argResults?.flag('dry-run') ?? false;
 
       if (dryRun) {
-        print(res);
+        logger.info('--- ${file.path} ---');
+        logger.info(res);
       } else {
         file.writeAsStringSync(res);
+        logger.success('Built ${p.relative(file.path, from: projectDir.path)}');
       }
     }
   }

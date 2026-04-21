@@ -1,2 +1,5 @@
 scopes:
   - lib/src/commands/commands.dart
+
+exclude:
+  - bin
