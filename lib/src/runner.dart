@@ -48,6 +48,7 @@ final class InlayRunner extends CompletionCommandRunner<int> {
     addCommand(BuildCommand());
     addCommand(ScopeCommand());
     addCommand(InitCommand());
+    addCommand(AnalyzeCommand());
   }
 
   /// Configures the logger level based on the verbose flag.
@@ -66,9 +67,20 @@ final class InlayRunner extends CompletionCommandRunner<int> {
       final scopes = (json['scopes'] as List?)?.cast<String>() ?? [];
       final exclude = (json['exclude'] as List?)?.cast<String>() ?? [];
 
+      final analyze = json['analyze'] as Map?;
+      final analyzeKeywords =
+          (analyze?['keywords'] as List?)?.cast<String>() ?? [];
+      final analyzeExtensions =
+          (analyze?['extensions'] as List?)?.cast<String>() ?? ['dart'];
+      final analyzeDepth = analyze?['depth'] as int?;
+
       _config = Config(
         scopes: scopes,
         exclude: exclude,
+        analyzeKeywords: analyzeKeywords,
+        analyzeExtensions: analyzeExtensions,
+        analyzeDepth: analyzeDepth,
+        isUsingDefaultAnalyzeConfig: analyze == null,
         templates: [Template.dartPart(), Template.dartExport()],
       );
 

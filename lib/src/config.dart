@@ -5,10 +5,20 @@ final class Config {
   final List<String> scopes;
   final List<String> exclude;
 
+  // Analyze settings
+  final List<String> analyzeKeywords;
+  final List<String> analyzeExtensions;
+  final int? analyzeDepth;
+  final bool isUsingDefaultAnalyzeConfig;
+
   Config({
     required List<Template> templates,
     required this.scopes,
     this.exclude = const [],
+    this.analyzeKeywords = const [],
+    this.analyzeExtensions = const ['dart'],
+    this.analyzeDepth,
+    this.isUsingDefaultAnalyzeConfig = true,
   }) : _templates = {for (final b in templates) b.name: b};
 
   bool hasTemplate(String name) => _templates.containsKey(name);

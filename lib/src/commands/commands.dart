@@ -13,5 +13,6 @@ import 'package:interact/interact.dart';
 part 'init_command.dart';
 part 'build_command.dart';
 part 'scope_command.dart';
+part 'analyze_command.dart';
 
 // inlay
