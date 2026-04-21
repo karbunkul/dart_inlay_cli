@@ -70,7 +70,10 @@ final class BuildCommand extends InlayCommand {
         );
 
         if (!_isExcluded(relPath, excludeGlobs)) {
+          logger.detail('Processing $relPath');
           _generate(file: entity as File, config: config!);
+        } else {
+          logger.detail('Skipping excluded file $relPath');
         }
       }
     }
@@ -103,6 +106,9 @@ final class BuildCommand extends InlayCommand {
     final path = p.normalize(file.parent.path);
 
     if (rule != null) {
+      logger.detail(
+        'Found rule in ${file.path}: template=${rule.template}, mask=${rule.mask}',
+      );
       final glob = Glob(rule.mask, context: p.Context(style: p.Style.posix));
       final parts = <String>[];
 
@@ -111,10 +117,15 @@ final class BuildCommand extends InlayCommand {
         followLinks: false,
       )) {
         final part = entity.path.substring(path.length + 1);
-        parts.add(p.posix.joinAll(part.split(p.separator)));
+        final posixPart = p.posix.joinAll(part.split(p.separator));
+        logger.detail('  Matched: $posixPart');
+        parts.add(posixPart);
       }
 
-      if (!config.hasTemplate(rule.template)) return;
+      if (!config.hasTemplate(rule.template)) {
+        logger.detail('Template ${rule.template} not found in config');
+        return;
+      }
 
       final template = config.template(rule.template)!;
 

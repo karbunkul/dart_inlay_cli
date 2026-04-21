@@ -9,8 +9,8 @@ import 'package:inlay/inlay.dart';
 
 // inlay template=dart-part mask=*_command.dart
 // GENERATED CODE - DO NOT MODIFY BY HAND
+part 'init_command.dart';
 part 'build_command.dart';
 part 'scope_command.dart';
-part 'init_command.dart';
 
 // inlay
