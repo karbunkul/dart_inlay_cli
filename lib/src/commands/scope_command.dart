@@ -77,7 +77,7 @@ final class ScopeCommand extends InlayCommand {
     final currentDirPath = Directory.current.path;
 
     for (final scope in config!.scopes) {
-      final glob = Glob(scope, context: p.Context(style: p.Style.posix));
+      final glob = Glob(scope);
       final hasMatches = glob.listSync(root: projectDir.path).any((entity) {
         return p.isWithin(currentDirPath, entity.path) ||
             entity.path == currentDirPath;
@@ -102,15 +102,11 @@ final class ScopeCommand extends InlayCommand {
     final marker = Marker.dart();
     final pattern = marker.pattern();
 
-    final globs = config!.scopes
-        .map((s) => Glob(s, context: p.Context(style: p.Style.posix)))
-        .toList();
-    final excludeGlobs = config!.exclude
-        .map((s) => Glob(s, context: p.Context(style: p.Style.posix)))
-        .toList();
+    final globs = config!.scopes.map((s) => Glob(s)).toList();
+    final excludeGlobs = config!.exclude.map((s) => Glob(s)).toList();
 
     for (final file in allFiles) {
-      final relPath = _toPosix(p.relative(file.path, from: projectDir.path));
+      final relPath = p.relative(file.path, from: projectDir.path);
 
       if (_isExcluded(relPath, excludeGlobs)) continue;
 
@@ -140,7 +136,7 @@ final class ScopeCommand extends InlayCommand {
   }
 
   Future<void> _inspectScope(String scope) async {
-    final glob = Glob(scope, context: p.Context(style: p.Style.posix));
+    final glob = Glob(scope);
     final currentDirPath = Directory.current.path;
 
     final files = glob

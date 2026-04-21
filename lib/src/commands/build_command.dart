@@ -52,22 +52,18 @@ final class BuildCommand extends InlayCommand {
       }
       return 1;
     }
-
-    final excludeGlobs = config!.exclude
-        .map((s) => Glob(s, context: p.Context(style: p.Style.posix)))
-        .toList();
+    final excludeGlobs = config!.exclude.map((s) => Glob(s)).toList();
 
     for (final scope in config!.scopes) {
-      final glob = Glob(scope, context: p.Context(style: p.Style.posix));
+      logger.info('Processing scope: $scope');
+      final glob = Glob(scope);
       for (var entity in glob.listSync(
         root: projectDir.path,
         followLinks: false,
       )) {
         if (entity is! File) continue;
 
-        final relPath = _toPosix(
-          p.relative(entity.path, from: projectDir.path),
-        );
+        final relPath = p.relative(entity.path, from: projectDir.path);
 
         if (!_isExcluded(relPath, excludeGlobs)) {
           logger.detail('Processing $relPath');
@@ -93,13 +89,6 @@ final class BuildCommand extends InlayCommand {
     return false;
   }
 
-  String _toPosix(String path) {
-    if (p.style == p.Style.windows) {
-      return path.replaceAll('\\', '/');
-    }
-    return path;
-  }
-
   void _generate({required File file, required Config config}) {
     final inlay = Inlay();
     final rule = inlay.parseFile(file: file, marker: Marker.dart());
@@ -109,7 +98,7 @@ final class BuildCommand extends InlayCommand {
       logger.detail(
         'Found rule in ${file.path}: template=${rule.template}, mask=${rule.mask}',
       );
-      final glob = Glob(rule.mask, context: p.Context(style: p.Style.posix));
+      final glob = Glob(rule.mask);
       final parts = <String>[];
 
       for (var entity in glob.listSync(
