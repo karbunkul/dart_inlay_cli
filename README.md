@@ -1,13 +1,57 @@
 # 💎 Inlay: Smart Code Incrustation Tool
+
 **Inlay** is a precision surgical tool for your codebase. It automates the maintenance of "barrel files" (exports), index files, and part-of connections. Instead of manually writing export or part lines every time you add a file, Inlay does it for you based on smart, declarative rules.
 
 ## 🚀 Key Features
 * **Bidirectional Sync:** Scans your filesystem and updates index blocks automatically.
-* **Template-Driven:** Built-in presets for dart-export, dart-part, or custom formatting.
-* **Glob-Pattern Precision:** Supports standard and deep-nesting masks (e.g., */*_page.dart or **/*.dart).
+* **Smart Analysis:** Automatically suggests markers based on your project structure.
+* **Scope Management:** Interactively manage which files are tracked by Inlay.
+* **Template-Driven:** Built-in presets for `dart-export`, `dart-part`, or custom formatting.
+* **Glob-Pattern Precision:** Supports standard and deep-nesting masks (e.g., `*/*_page.dart` or `**/*.dart`).
 
-## 🛠️ How It Works
-Insert a special comment block into your index file (e.g., lib/src/pages/pages.dart):
+## 📦 Installation
+
+```bash
+dart pub global activate inlay -sgit https://github.com/karbunkul/dart_inlay_cli.git
+```
+
+## 🛠️ CLI Commands
+
+### `inlay init`
+Initializes a new `inlay.yaml` configuration file in your project root.
+
+### `inlay analyze`
+Scans your project and suggests `inlay` markers based on detected file patterns.
+* `--dir, -p`: Directory to analyze (default: current).
+* `--depth, -d`: Maximum depth to scan (default: 2, max: 3).
+
+### `inlay scope`
+Inspects active scopes in the current directory and helps you add new ones interactively. It detects files with markers that are not yet covered by any scope in `inlay.yaml`.
+
+### `inlay build`
+The main engine. Scans files in your scopes and updates the generated code blocks.
+* `--dry-run`: Preview changes without writing to files.
+* `--file, -f`: Process a specific file instead of using configured scopes.
+
+## ⚙️ Configuration (`inlay.yaml`)
+
+```yaml
+scopes:
+  - lib/**.dart  # Glob patterns to scan for markers
+
+exclude:
+  - bin/**       # Patterns to ignore
+  - .dart_tool/**
+
+analyze:
+  depth: 2       # Default depth for analysis
+  keywords:      # Custom keywords to help find patterns (e.g. Page, Bloc, Entity)
+    - Page
+```
+
+## 📝 How It Works
+
+Insert a special comment block into your index file (e.g., `lib/src/pages/pages.dart`):
 
 ```dart
 // inlay template=dart-export mask=/*_page.dart
@@ -21,12 +65,12 @@ export 'settings/settings_page.dart';
 ### Parameters:
 
 * **template:** The formatting rule for the generated line.
-  * **dart-export** -> export 'path/file.dart';
-  * **dart-part** -> part 'file.dart';
+  * `dart-export` -> `export 'path/file.dart';`
+  * `dart-part` -> `part 'file.dart';`
 
 * **mask:** The Glob pattern to find target files.
-  * **\*/\*_page.dart:** Look exactly one level deep (Folder/File_page.dart).
-  * ****/*.dart:** Recursive search through all subdirectories.
+  * `*/*_page.dart`: Look exactly one level deep (`Folder/File_page.dart`).
+  * `**/*.dart`: Recursive search through all subdirectories.
 
 ## 🏗️ Integration with Foreman
 Inlay shines brightest as an after-hook in the Foreman ecosystem. When you generate a new "brick" (feature, page, or component), Inlay instantly detects it and wires it into the rest of the application.
