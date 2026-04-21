@@ -3,3 +3,10 @@ scopes:
 
 exclude:
   - bin
+
+analyze:
+  extensions:
+    - dart
+  depth: 1
+  keywords:
+    - command

@@ -9,7 +9,7 @@ final class ScopeCommand extends InlayCommand {
 
   @override
   Future<int> run() async {
-    final currentDirRel = _toPosix(
+    final currentDirRel = toPosix(
       p.relative(Directory.current.path, from: projectDir.path),
     );
 
@@ -42,7 +42,7 @@ final class ScopeCommand extends InlayCommand {
       );
       for (final file in untrackedWithMarkers.take(5)) {
         logger.info(
-          '  - ${_toPosix(p.relative(file.path, from: Directory.current.path))}',
+          '  - ${toPosix(p.relative(file.path, from: Directory.current.path))}',
         );
       }
       if (untrackedWithMarkers.length > 5) {
@@ -63,13 +63,6 @@ final class ScopeCommand extends InlayCommand {
     }
 
     return 0;
-  }
-
-  String _toPosix(String path) {
-    if (p.style == p.Style.windows) {
-      return path.replaceAll('\\', '/');
-    }
-    return path;
   }
 
   List<String> _findActiveScopes() {
@@ -106,7 +99,7 @@ final class ScopeCommand extends InlayCommand {
     final excludeGlobs = config!.exclude.map((s) => Glob(s)).toList();
 
     for (final file in allFiles) {
-      final relPath = p.relative(file.path, from: projectDir.path);
+      final relPath = toPosix(p.relative(file.path, from: projectDir.path));
 
       if (_isExcluded(relPath, excludeGlobs)) continue;
 
@@ -171,7 +164,7 @@ final class ScopeCommand extends InlayCommand {
     }
 
     for (final file in files.take(3)) {
-      final relPath = _toPosix(p.relative(file.path, from: currentDirPath));
+      final relPath = toPosix(p.relative(file.path, from: currentDirPath));
       final hasMarkers = filesWithMarkers.contains(file);
       logger.info(
         '      ${darkGray.wrap('->')} $relPath ${hasMarkers ? yellow.wrap('⚡') : ''}',
@@ -183,41 +176,54 @@ final class ScopeCommand extends InlayCommand {
     String currentDirRel, {
     List<File>? untrackedFiles,
   }) async {
-    final choices = <String>{};
-
+    String basePath;
     if (untrackedFiles != null && untrackedFiles.isNotEmpty) {
-      for (final file in untrackedFiles) {
-        final dir = _toPosix(
-          p.dirname(p.relative(file.path, from: projectDir.path)),
-        );
-        choices.add(dir == '.' ? '*.dart' : '$dir/*.dart');
-        choices.add(dir == '.' ? '**.dart' : '$dir/**.dart');
-      }
-    }
-
-    if (currentDirRel != '.') {
-      choices.add('$currentDirRel/*.dart');
-      choices.add('$currentDirRel/**.dart');
-    }
-
-    choices.addAll(['*.dart', '**.dart', 'Custom pattern...']);
-
-    final selection = logger.chooseOne(
-      '\nChoose a pattern to add to scopes:',
-      choices: choices.toList(),
-      defaultValue: choices.first,
-    );
-
-    String? finalScope = selection;
-    if (selection == 'Custom pattern...') {
-      finalScope = logger.prompt('Enter custom scope pattern:');
-    }
-
-    if (finalScope.isNotEmpty) {
-      final confirm = logger.confirm(
-        'Add "$finalScope" to inlay.yaml?',
-        defaultValue: true,
+      basePath = toPosix(
+        p.relative(untrackedFiles.first.path, from: projectDir.path),
       );
+    } else {
+      basePath = currentDirRel == '.' ? '*.dart' : '$currentDirRel/*.dart';
+    }
+
+    final mode = Select(
+      prompt: 'How would you like to add the scope?',
+      options: [
+        'Use as is: $basePath',
+        'Replace parts with * (interactive)...',
+        'Custom pattern (edit current)...',
+      ],
+    ).interact();
+
+    String? finalScope;
+
+    if (mode == 0) {
+      finalScope = basePath;
+    } else if (mode == 1) {
+      final segments = basePath.split('/');
+      final selectedIndices = MultiSelect(
+        prompt: 'Select segments to replace with * (Space to select)',
+        options: segments,
+      ).interact();
+
+      final resultSegments = List<String>.from(segments);
+      for (final index in selectedIndices) {
+        resultSegments[index] = '*';
+      }
+      finalScope = resultSegments.join('/');
+    } else {
+      finalScope = Input(
+        prompt: 'Enter custom scope pattern',
+        defaultValue: basePath,
+      ).interact();
+    }
+
+    if (finalScope != null && finalScope.isNotEmpty) {
+      finalScope = toPosix(finalScope);
+      final confirm = Confirm(
+        prompt: 'Add "$finalScope" to inlay.yaml?',
+        defaultValue: true,
+      ).interact();
+
       if (confirm) {
         _addScopeToConfig(finalScope);
         logger.success('Added scope: $finalScope');

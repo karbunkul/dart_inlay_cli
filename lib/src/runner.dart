@@ -48,6 +48,7 @@ final class InlayRunner extends CompletionCommandRunner<int> {
     addCommand(BuildCommand());
     addCommand(ScopeCommand());
     addCommand(InitCommand());
+    addCommand(AnalyzeCommand());
   }
 
   /// Configures the logger level based on the verbose flag.
@@ -66,9 +67,20 @@ final class InlayRunner extends CompletionCommandRunner<int> {
       final scopes = (json['scopes'] as List?)?.cast<String>() ?? [];
       final exclude = (json['exclude'] as List?)?.cast<String>() ?? [];
 
+      final analyze = json['analyze'] as Map?;
+      final analyzeKeywords =
+          (analyze?['keywords'] as List?)?.cast<String>() ?? [];
+      final analyzeExtensions =
+          (analyze?['extensions'] as List?)?.cast<String>() ?? ['dart'];
+      final analyzeDepth = analyze?['depth'] as int?;
+
       _config = Config(
         scopes: scopes,
         exclude: exclude,
+        analyzeKeywords: analyzeKeywords,
+        analyzeExtensions: analyzeExtensions,
+        analyzeDepth: analyzeDepth,
+        isUsingDefaultAnalyzeConfig: analyze == null,
         templates: [Template.dartPart(), Template.dartExport()],
       );
 
@@ -133,7 +145,7 @@ final class InlayRunner extends CompletionCommandRunner<int> {
 
   Future<int?> _versionSetup() async {
     _logger.info(
-      '💎 Inlay 0.9.8\n\n'
+      '💎 Inlay 0.9.9\n\n'
       'Author: Alexander Pokhodyun (karbunkul) https://github.com/karbunkul\n',
     );
 
@@ -167,4 +179,7 @@ abstract base class InlayCommand extends Command<int> {
 
   /// The configuration file used by the runner.
   File get configFile => runner._configFile;
+
+  /// Converts a path to POSIX format (using forward slashes).
+  String toPosix(String path) => path.replaceAll('\\', '/');
 }

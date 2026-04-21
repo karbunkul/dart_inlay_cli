@@ -34,7 +34,7 @@ final class BuildCommand extends InlayCommand {
       } else {
         final config = Config(
           templates: [Template.dartPart(), Template.dartExport()],
-          scopes: [normalizeFile.path],
+          scopes: [toPosix(normalizeFile.path)],
         );
         _generate(file: normalizeFile, config: config);
         return 0;
@@ -106,7 +106,7 @@ final class BuildCommand extends InlayCommand {
         followLinks: false,
       )) {
         final part = entity.path.substring(path.length + 1);
-        final posixPart = p.posix.joinAll(part.split(p.separator));
+        final posixPart = toPosix(part);
         logger.detail('  Matched: $posixPart');
         parts.add(posixPart);
       }
