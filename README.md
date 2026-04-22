@@ -21,7 +21,7 @@ To better understand how Inlay works, here are the core concepts:
 ## 📦 Installation
 
 ```bash
-dart pub global activate inlay -sgit https://github.com/karbunkul/dart_inlay_cli.git
+dart pub global activate -sgit https://github.com/karbunkul/dart_inlay_cli.git
 ```
 
 ## 🛠️ CLI Commands
