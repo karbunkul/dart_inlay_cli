@@ -22,7 +22,7 @@ final class BuildCommand extends InlayCommand {
   }
 
   @override
-  String get description => 'generate code';
+  String get description => 'Scan scopes and update inlay markers.';
 
   @override
   String get name => 'build';
@@ -72,7 +72,7 @@ final class BuildCommand extends InlayCommand {
           logger.warn('No tags defined in inlay.yaml');
         } else {
           final selection = MultiSelect(
-            prompt: 'Select tags to build',
+            prompt: 'Select tags to build (Space to select, Enter to confirm)',
             options: allTags,
           ).interact();
 
@@ -91,7 +91,7 @@ final class BuildCommand extends InlayCommand {
         continue;
       }
 
-      logger.info('Processing scope: ${scope.pattern}');
+      logger.detail('Processing scope: ${scope.pattern}');
       final glob = Glob(scope.pattern);
       for (var entity in glob.listSync(
         root: projectDir.path,

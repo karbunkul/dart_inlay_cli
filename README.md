@@ -41,7 +41,7 @@ Inspects active scopes in the current directory and helps you add new ones inter
 The main engine. Scans files in your scopes and updates the generated code blocks.
 * `--dry-run`: Preview changes without writing to files.
 * `--file, -f`: Process a specific file instead of using configured scopes.
-* `--tag, -t`: Filter by tags. Run `inlay build -t` without arguments to see an interactive selector.
+* `--tag, -t`: Filter by tags. Run `inlay build -t` without arguments for interactive selector (use **Space** to select, **Enter** to confirm).
 
 ## 🏷️ Tags & Performance
 For large projects, you can group your scopes using tags in `inlay.yaml`. This allows Inlay to skip unnecessary file scanning.
