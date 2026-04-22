@@ -6,10 +6,10 @@ import 'package:mason_logger/mason_logger.dart';
 
 // inlay
 
-void main(List<String> arguments) {
+void main(List<String> arguments) async {
   final logger = Logger();
   try {
-    InlayRunner(logger: logger).run(arguments);
+    await InlayRunner(logger: logger).run(arguments);
   } catch (e) {
     logger.err(e.toString());
   }

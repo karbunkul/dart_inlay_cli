@@ -17,7 +17,7 @@ final class Inlay {
       final endOffset = closingMatch.end;
 
       final pattern = RegExp(
-        r'(template|mask)\s?=\s{0}(.[^\s;]*)',
+        r'(template|mask|tag)\s?=\s{0}(.[^\s;]*)',
         multiLine: true,
       );
       final paramMatches = pattern.allMatches(firstContent);
@@ -37,6 +37,7 @@ final class Inlay {
           Rule(
             mask: params['mask']!,
             template: params['template']!,
+            tag: params['tag'],
             start: startOffset,
             end: endOffset,
           ),

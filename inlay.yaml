@@ -1,5 +1,6 @@
 scopes:
-  - lib/src/commands/commands.dart
+  - pattern: lib/src/commands/commands.dart
+    tags: [core]
 
 exclude:
   - bin

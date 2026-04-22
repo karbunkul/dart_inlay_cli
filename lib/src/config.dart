@@ -2,7 +2,7 @@ import 'package:inlay/inlay.dart';
 
 final class Config {
   final Map<String, Template> _templates;
-  final List<String> scopes;
+  final List<Scope> scopes;
   final List<String> exclude;
 
   // Analyze settings
@@ -23,6 +23,15 @@ final class Config {
 
   bool hasTemplate(String name) => _templates.containsKey(name);
   Template? template(String name) => _templates[name];
+}
+
+final class Scope {
+  final String pattern;
+  final List<String> tags;
+
+  Scope({required this.pattern, this.tags = const []});
+
+  bool hasTag(String tag) => tags.contains(tag);
 }
 
 final class Template {

@@ -1,6 +1,6 @@
 name: inlay
 description: A sample command-line application.
-version: 0.9.9
+version: 0.9.10
 # repository: https://github.com/my_org/my_repo
 
 environment:

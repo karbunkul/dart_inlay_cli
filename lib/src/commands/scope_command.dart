@@ -70,14 +70,14 @@ final class ScopeCommand extends InlayCommand {
     final currentDirPath = Directory.current.path;
 
     for (final scope in config!.scopes) {
-      final glob = Glob(scope);
+      final glob = Glob(scope.pattern);
       final hasMatches = glob.listSync(root: projectDir.path).any((entity) {
         return p.isWithin(currentDirPath, entity.path) ||
             entity.path == currentDirPath;
       });
 
       if (hasMatches) {
-        active.add(scope);
+        active.add(scope.pattern);
       }
     }
     return active;
@@ -95,7 +95,7 @@ final class ScopeCommand extends InlayCommand {
     final marker = Marker.dart();
     final pattern = marker.pattern();
 
-    final globs = config!.scopes.map((s) => Glob(s)).toList();
+    final globs = config!.scopes.map((s) => Glob(s.pattern)).toList();
     final excludeGlobs = config!.exclude.map((s) => Glob(s)).toList();
 
     for (final file in allFiles) {
@@ -217,7 +217,7 @@ final class ScopeCommand extends InlayCommand {
       ).interact();
     }
 
-    if (finalScope != null && finalScope.isNotEmpty) {
+    if (finalScope.isNotEmpty) {
       finalScope = toPosix(finalScope);
       final confirm = Confirm(
         prompt: 'Add "$finalScope" to inlay.yaml?',

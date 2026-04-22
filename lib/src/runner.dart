@@ -64,7 +64,23 @@ final class InlayRunner extends CompletionCommandRunner<int> {
     if (_config == null && _configFile.existsSync()) {
       final yaml = loadYaml(_configFile.readAsStringSync()) as Map;
       final json = jsonDecode(jsonEncode(yaml));
-      final scopes = (json['scopes'] as List?)?.cast<String>() ?? [];
+      final scopesRaw = json['scopes'] as List?;
+      final scopes = <Scope>[];
+      if (scopesRaw != null) {
+        for (final item in scopesRaw) {
+          if (item is String) {
+            scopes.add(Scope(pattern: item));
+          } else if (item is Map) {
+            final pattern = item['pattern'] as String?;
+            final tagsRaw = item['tags'] as List?;
+            if (pattern != null) {
+              scopes.add(
+                Scope(pattern: pattern, tags: tagsRaw?.cast<String>() ?? []),
+              );
+            }
+          }
+        }
+      }
       final exclude = (json['exclude'] as List?)?.cast<String>() ?? [];
 
       final analyze = json['analyze'] as Map?;

@@ -13,6 +13,12 @@ final class BuildCommand extends InlayCommand {
       help: 'Process a specific file instead of using scopes from inlay.yaml.',
       valueHelp: 'PATH',
     );
+    argParser.addFlag(
+      'tag',
+      abbr: 't',
+      help: 'Filter by tags. If no tags provided, shows interactive selector.',
+      negatable: false,
+    );
   }
 
   @override
@@ -34,7 +40,7 @@ final class BuildCommand extends InlayCommand {
       } else {
         final config = Config(
           templates: [Template.dartPart(), Template.dartExport()],
-          scopes: [toPosix(normalizeFile.path)],
+          scopes: [Scope(pattern: toPosix(normalizeFile.path))],
         );
         _generate(file: normalizeFile, config: config);
         return 0;
@@ -53,10 +59,40 @@ final class BuildCommand extends InlayCommand {
       return 1;
     }
     final excludeGlobs = config!.exclude.map((s) => Glob(s)).toList();
+    var requestedTags = <String>[];
+
+    if (argResults?.wasParsed('tag') == true) {
+      requestedTags = argResults?.rest ?? [];
+
+      if (requestedTags.isEmpty) {
+        final allTags = config!.scopes.expand((s) => s.tags).toSet().toList()
+          ..sort();
+
+        if (allTags.isEmpty) {
+          logger.warn('No tags defined in inlay.yaml');
+        } else {
+          final selection = MultiSelect(
+            prompt: 'Select tags to build',
+            options: allTags,
+          ).interact();
+
+          requestedTags = selection.map((i) => allTags[i]).toList();
+          if (requestedTags.isEmpty) {
+            logger.warn('No tags selected. Aborting.');
+            return 0;
+          }
+        }
+      }
+    }
 
     for (final scope in config!.scopes) {
-      logger.info('Processing scope: $scope');
-      final glob = Glob(scope);
+      if (requestedTags.isNotEmpty &&
+          !requestedTags.any((tag) => scope.hasTag(tag))) {
+        continue;
+      }
+
+      logger.info('Processing scope: ${scope.pattern}');
+      final glob = Glob(scope.pattern);
       for (var entity in glob.listSync(
         root: projectDir.path,
         followLinks: false,
@@ -67,7 +103,11 @@ final class BuildCommand extends InlayCommand {
 
         if (!_isExcluded(relPath, excludeGlobs)) {
           logger.detail('Processing $relPath');
-          _generate(file: entity as File, config: config!);
+          _generate(
+            file: entity as File,
+            config: config!,
+            requestedTags: requestedTags,
+          );
         } else {
           logger.detail('Skipping excluded file $relPath');
         }
@@ -89,11 +129,21 @@ final class BuildCommand extends InlayCommand {
     return false;
   }
 
-  void _generate({required File file, required Config config}) {
+  void _generate({
+    required File file,
+    required Config config,
+    List<String> requestedTags = const [],
+  }) {
     final inlay = Inlay();
     final marker = Marker.dart();
     final content = file.readAsStringSync();
-    final rules = inlay.parse(content: content, marker: marker);
+    var rules = inlay.parse(content: content, marker: marker);
+
+    if (rules.isEmpty) return;
+
+    if (requestedTags.isNotEmpty) {
+      rules = rules.where((r) => requestedTags.contains(r.tag)).toList();
+    }
 
     if (rules.isEmpty) return;
 

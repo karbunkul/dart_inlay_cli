@@ -6,12 +6,14 @@ import 'package:mustache_template/mustache.dart' as m;
 final class Rule {
   final String mask;
   final String template;
+  final String? tag;
   final int start;
   final int end;
 
   const Rule({
     required this.mask,
     required this.template,
+    this.tag,
     required this.start,
     required this.end,
   });
