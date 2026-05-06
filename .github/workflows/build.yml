@@ -19,7 +19,7 @@ jobs:
             artifact_name: inlay-linux
           - os: macos-latest
             artifact_name: inlay-macos
-          - os: inlay-latest
+          - os: windows-latest
             artifact_name: inlay-windows.exe
 
     steps:
