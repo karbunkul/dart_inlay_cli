@@ -168,6 +168,8 @@ final class BuildCommand extends InlayCommand {
         parts.add(posixPart);
       }
 
+      parts.sort();
+
       if (!config.hasTemplate(rule.template)) {
         logger.detail('Template ${rule.template} not found in config');
         continue;

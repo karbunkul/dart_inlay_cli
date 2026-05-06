@@ -27,9 +27,10 @@ final class Config {
 
 final class Scope {
   final String pattern;
+  final String? description;
   final List<String> tags;
 
-  Scope({required this.pattern, this.tags = const []});
+  Scope({required this.pattern, this.description, this.tags = const []});
 
   bool hasTag(String tag) => tags.contains(tag);
 }

@@ -1,7 +1,7 @@
 name: inlay
-description: A sample command-line application.
-version: 0.9.10
-# repository: https://github.com/my_org/my_repo
+description: A command-line tool to automate code generation using inlay markers.
+version: 1.0.0
+repository: https://github.com/karbunkul/dart_inlay_cli
 
 environment:
   sdk: ^3.11.0
