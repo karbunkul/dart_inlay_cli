@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:inlay/inlay.dart';
 import 'package:mustache_template/mustache.dart' as m;
 

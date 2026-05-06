@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:inlay/inlay.dart';
 
 final class Inlay {

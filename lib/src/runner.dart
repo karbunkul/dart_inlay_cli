@@ -18,7 +18,6 @@ const _configFileName = 'inlay.yaml';
 
 final class InlayRunner extends CompletionCommandRunner<int> {
   final Logger _logger;
-  bool _verbose = false;
   late Directory _projectDir;
   Config? _config;
   bool _isInitialized = false;
@@ -54,7 +53,6 @@ final class InlayRunner extends CompletionCommandRunner<int> {
   /// Configures the logger level based on the verbose flag.
   void _verboseSetup(ArgResults topLevelResults) {
     if (topLevelResults[_keyVerbose] == true) {
-      _verbose = true;
       _logger.level = Level.verbose;
     }
   }
