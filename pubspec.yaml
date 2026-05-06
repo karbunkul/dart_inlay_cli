@@ -6,7 +6,6 @@ repository: https://github.com/karbunkul/dart_inlay_cli
 environment:
   sdk: ^3.11.0
 
-# Add regular dependencies here.
 dependencies:
   args: ^2.7.0
   cli_completion: ^0.5.1
