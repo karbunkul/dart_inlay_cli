@@ -20,8 +20,20 @@ To better understand how Inlay works, here are the core concepts:
 
 ## 📦 Installation
 
+### One-liner (recommended)
+```bash
+curl -fsSL https://raw.githubusercontent.com/karbunkul/dart_inlay_cli/main/install.sh | bash
+```
+
+### From source (requires Dart SDK)
 ```bash
 dart pub global activate -sgit https://github.com/karbunkul/dart_inlay_cli.git
+```
+
+## 🗑️ Uninstallation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/karbunkul/dart_inlay_cli/main/uninstall.sh | bash
 ```
 
 ## 🛠️ CLI Commands
