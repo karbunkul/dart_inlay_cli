@@ -1,32 +1,11 @@
 import 'dart:io';
-
 import 'package:path/path.dart' as p;
-import 'package:watcher/watcher.dart';
 
-/// A handler responsible for automatically managing `part` directives in Dart files.
-///
-/// When a file with a `part of` directive is added or modified, [InlayHandler]
-/// ensures the corresponding main file contains the matching `part` directive.
-/// When such a file is removed, it cleans up the reference in the main file.
-final class InlayHandler {
-  final WatchEvent _event;
-
-  InlayHandler({required WatchEvent event}) : _event = event;
-
-  /// Processes the [WatchEvent] and triggers the appropriate update logic.
-  void handle() {
-    if (p.extension(_event.path) != '.dart') return;
-
-    if (_event.type == ChangeType.REMOVE) {
-      _handleRemovePart(_event.path);
-    } else {
-      _handleUpsertPart(_event.path);
-    }
-  }
-
+/// A processor responsible for managing `part` directives in Dart files.
+final class PartProcessor {
   /// Handles addition or modification of a part file.
   /// Reads the `part of` directive to find and update the main library file.
-  void _handleUpsertPart(String eventPath) {
+  void upsertPart(String eventPath) {
     final eventFile = File(eventPath);
     if (!eventFile.existsSync()) return;
 
@@ -47,11 +26,11 @@ final class InlayHandler {
     final posixRelativePath = p.posix.joinAll(p.split(relativePath));
     final partLine = "part '$posixRelativePath';";
 
-    _updateMainFile(mainFile, partLine, isRemoval: false);
+    updateMainFile(mainFile, partLine, isRemoval: false);
   }
 
   /// Handles removal of a part file by scanning neighbor files for references.
-  void _handleRemovePart(String eventPath) {
+  void removePart(String eventPath) {
     final dir = Directory(p.dirname(eventPath));
     if (!dir.existsSync()) return;
 
@@ -84,12 +63,12 @@ final class InlayHandler {
 
     if (mainFile == null || partLine == null) return;
 
-    _updateMainFile(mainFile, partLine, isRemoval: true);
+    updateMainFile(mainFile, partLine, isRemoval: true);
   }
 
   /// Updates the content of the [mainFile] by adding or removing the [partLine].
   /// It also ensures that all `part` directives remain sorted alphabetically.
-  void _updateMainFile(
+  void updateMainFile(
     File mainFile,
     String partLine, {
     required bool isRemoval,
@@ -147,6 +126,6 @@ final class InlayHandler {
 
     final newContent = lines.join('\n').replaceAll(RegExp(r'\n{3,}'), '\n\n');
     mainFile.writeAsStringSync(newContent);
-    print('Updated ${mainFile.path}');
+    stdout.writeln('Updated ${mainFile.path}');
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -6,23 +5,24 @@ import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
 import 'package:inlay/inlay.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:path/path.dart' as p;
-import 'package:yaml/yaml.dart';
 
+const version = '2.0.0-beta';
 const _keyVerbose = 'verbose';
 const _keyVersion = 'version';
 const _keyHelp = 'help';
-const _keyProjectDirectory = 'project-dir';
-
-const _configFileName = 'inlay.yaml';
+// const _keyProjectDirectory = 'project-dir';
 
 final class InlayRunner extends CompletionCommandRunner<int> {
   final Logger _logger;
   late Directory _projectDir;
-  Config? _config;
   bool _isInitialized = false;
 
-  InlayRunner({required Logger logger}) : _logger = logger, super('inlay', '') {
+  InlayRunner({required Logger logger})
+    : _logger = logger,
+      super(
+        'inlay',
+        'A Dart tool for automatically managing part directives.',
+      ) {
     // flags
     argParser
       ..addFlag(
@@ -37,70 +37,15 @@ final class InlayRunner extends CompletionCommandRunner<int> {
         defaultsTo: false,
         negatable: false,
       );
-    // options
-    argParser.addOption(
-      _keyProjectDirectory,
-      abbr: 'p',
-      help: 'The path to the project directory.',
-    );
 
     addCommand(BuildCommand());
-    addCommand(ScopeCommand());
-    addCommand(InitCommand());
-    addCommand(AnalyzeCommand());
+    addCommand(WatchCommand());
   }
 
   /// Configures the logger level based on the verbose flag.
   void _verboseSetup(ArgResults topLevelResults) {
     if (topLevelResults[_keyVerbose] == true) {
       _logger.level = Level.verbose;
-    }
-  }
-
-  /// Loads the [Config] from the configuration file if it exists.
-  void _configSetup(ArgResults topLevelResults) {
-    if (_config == null && _configFile.existsSync()) {
-      final yaml = loadYaml(_configFile.readAsStringSync()) as Map;
-      final json = jsonDecode(jsonEncode(yaml));
-      final scopesRaw = json['scopes'] as List?;
-      final scopes = <Scope>[];
-      if (scopesRaw != null) {
-        for (final item in scopesRaw) {
-          if (item is String) {
-            scopes.add(Scope(pattern: item));
-          } else if (item is Map) {
-            final pattern = item['pattern'] as String?;
-            final tagsRaw = item['tags'] as List?;
-            if (pattern != null) {
-              scopes.add(
-                Scope(pattern: pattern, tags: tagsRaw?.cast<String>() ?? []),
-              );
-            }
-          }
-        }
-      }
-      final exclude = (json['exclude'] as List?)?.cast<String>() ?? [];
-
-      final analyze = json['analyze'] as Map?;
-      final analyzeKeywords =
-          (analyze?['keywords'] as List?)?.cast<String>() ?? [];
-      final analyzeExtensions =
-          (analyze?['extensions'] as List?)?.cast<String>() ?? ['dart'];
-      final analyzeDepth = analyze?['depth'] as int?;
-
-      _config = Config(
-        scopes: scopes,
-        exclude: exclude,
-        analyzeKeywords: analyzeKeywords,
-        analyzeExtensions: analyzeExtensions,
-        analyzeDepth: analyzeDepth,
-        isUsingDefaultAnalyzeConfig: analyze == null,
-        templates: [Template.dartPart(), Template.dartExport()],
-      );
-
-      _logger.detail('DEBUG: Config loaded from ${_configFile.path}');
-      _logger.detail('DEBUG: Scopes found: $scopes');
-      _logger.detail('DEBUG: Exclude patterns: $exclude');
     }
   }
 
@@ -115,51 +60,28 @@ final class InlayRunner extends CompletionCommandRunner<int> {
       return _versionSetup();
     }
 
-    if (topLevelResults.wasParsed(_keyHelp)) {
-      return super.runCommand(topLevelResults);
-    }
-
     if (!_isInitialized) {
       _verboseSetup(topLevelResults);
-      _projectDirSetup(topLevelResults);
-      _configSetup(topLevelResults);
+      // _projectDirSetup(topLevelResults);
 
       _isInitialized = true;
     }
     return super.runCommand(topLevelResults);
   }
 
-  void _projectDirSetup(ArgResults topLevelResults) {
-    final path = topLevelResults[_keyProjectDirectory] as String?;
-
-    if (path != null) {
-      _projectDir = Directory(path);
-    } else {
-      final projectDir = _findProjectDir(Directory.current);
-      _projectDir = projectDir ?? Directory.current;
-    }
-  }
-
-  /// Returns the [File] pointing to the `inlay.yaml` configuration file.
-  File get _configFile =>
-      File(p.join(_projectDir.absolute.path, _configFileName));
-
-  /// Recursively searches for a directory containing `foreman.yaml` starting from [dir].
-  Directory? _findProjectDir(Directory dir) {
-    final hasConfigFile = File(p.join(dir.path, _configFileName)).existsSync();
-
-    if (hasConfigFile) return dir;
-
-    if (dir.parent.path == dir.path) {
-      return null;
-    }
-
-    return _findProjectDir(dir.parent);
-  }
+  // void _projectDirSetup(ArgResults topLevelResults) {
+  //   final path = topLevelResults[_keyProjectDirectory] as String?;
+  //
+  //   if (path != null) {
+  //     _projectDir = Directory(path);
+  //   } else {
+  //     _projectDir = Directory.current;
+  //   }
+  // }
 
   Future<int?> _versionSetup() async {
     _logger.info(
-      '💎 Inlay 1.0.0\n\n'
+      '💎 Inlay $version\n\n'
       'Author: Alexander Pokhodyun (karbunkul) https://github.com/karbunkul\n',
     );
 
@@ -184,15 +106,6 @@ abstract base class InlayCommand extends Command<int> {
 
   /// The project directory for the current execution.
   Directory get projectDir => runner._projectDir;
-
-  /// The parsed configuration specification, if available.
-  Config? get config => runner._config;
-
-  /// Whether a configuration was successfully loaded.
-  bool get hasConfig => config != null;
-
-  /// The configuration file used by the runner.
-  File get configFile => runner._configFile;
 
   /// Converts a path to POSIX format (using forward slashes).
   String toPosix(String path) => path.replaceAll('\\', '/');
